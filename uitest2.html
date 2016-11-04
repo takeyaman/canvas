@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>UITEST</title>
+  <link rel="stylesheet" href="../css/uiTest.css">
+  <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+  <script type="text/javascript" src="../js/jcanvas.min.js">
+  </script>
+  <script type="text/javascript" src="../js/myAjax.js">
+  </script>
+  <script type="text/javascript" src="../js/uiTest2.js">
+  </script>
+</head>
+<body>
+  <!--  <body onload="initialize()"> -->
+  <p>javascript UI操作</p>
+  <div id="header">
+    <span id="makeObjectButton" style="border-style:solid;">makeField</span>&nbsp;&nbsp;&nbsp;&nbsp;
+    <span id="makeObjectButton2" style="border-style:solid;">makeField2</span>&nbsp;&nbsp;&nbsp;&nbsp;
+    <span id="fixedButton" style="border-style:solid;">fixed</span>&nbsp;&nbsp;&nbsp;&nbsp;
+    <span id="dynamicButton" style="border-style:solid;">dynamic</span>&nbsp;&nbsp;&nbsp;&nbsp;
+    <img id="patternImg_bg2" src="../img/bg2.jpg" style="display:none;" />
+    <img id="patternImg_bg1" src="../img/bg1.jpg" style="display:none;" />
+  </div>
+  <div id="my_body">
+    <div id="lnavi"><form>
+      <div id="jquery-ui-dialog-input1">
+        <span id="dummyInputTitle"></span>
+        <input type="text" id="dummyInput1" name="dummyInput1" />
+      </div>
+      <div style="float: right; width:15px; height:15px;" id="lnaviClose">x</div>
+      <span id="tinput1">入力1</span><span style="width:100%;" id="input1" style="border-style:solid">ダミーダミーダミーダミーダミーダミーダミー</span><input type="hidden" name="hinput1" id="hinput1" value="" /><br />
+      <span id="tinput2">入力2</span><span style="width:100%;" id="input2">ダミー</span><input type="hidden" name="hinput2" id="hinput2" value="" />
+      <!--<span id="makeObjectButton" style="border-style:solid;">makeField</span>-->
+    </form></div>
+    <div id="uifieldbase"><div id="uifield"><canvas width="2000" height="2000"></canvas></div></div>
+  </div></body>
+  </html>
