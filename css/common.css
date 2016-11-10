@@ -4673,3 +4673,16 @@ a.text-gray-dark:focus, a.text-gray-dark:hover {
 @media print {
   .hidden-print {
     display: none !important; } }
+
+[off-canvas] {
+  background-color: #f7f7f9;
+  /* Basic background color, overwrite this in your own css. */
+  color: #373a3c;
+  /* Basic colors, overwrite this in your own css. */ }
+
+#landInfoDiv {
+  padding: 0.5rem;
+  white-space: nowrap;
+  overflow-x: scroll;
+  overflow-y: hidden;
+  width: 50rem; }

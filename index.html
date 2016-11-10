@@ -2,34 +2,96 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>canvas test</title>
+  <link rel="stylesheet" href="/css/slidebars.css">
+  <link rel="stylesheet" href="/css/font-awesome.min.css">
   <link rel="stylesheet" href="/css/common.css">
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+  <!--<script src="https://cdnjs.cloudflare.com/ajax/libs/iScroll/5.1.3/iscroll.min.js"></script>-->
   <script type="text/javascript" src="/js/jcanvas.min.js">
   </script>
+  <script type="text/javascript" src="/js/tether.min.js">
+  </script>
   <script type="text/javascript" src="/js/bootstrap.min.js">
+  </script>
+  <script type="text/javascript" src="/js/slidebars.min.js">
   </script>
   <script type="text/javascript" src="/js/svg.js">
   </script>
   <script type="text/javascript" src="/js/svg.draggable.min.js">
   </script>
-  <script type="text/javascript" src="/js/canvas.js">
+  <script type="text/javascript" src="/js/drawing.js">
   </script>
 </head>
-<body>
-  <div class="container">
-    <div class="page-header">
-      <span id="makeObjectButton" style="border-style:solid;">makeField</span>&nbsp;&nbsp;&nbsp;&nbsp;
-      <span id="fixedButton" style="border-style:solid;">fixed</span>&nbsp;&nbsp;&nbsp;&nbsp;
-      <span id="dynamicButton" style="border-style:solid;">dynamic</span>&nbsp;&nbsp;&nbsp;&nbsp;
+<body class="">
+  <div canvas="container">
+    <div class="container">
+      <div class="page-header">
+        <span id="makeObjectButton" style="border-style:solid;">makeField</span>&nbsp;&nbsp;&nbsp;&nbsp;
+        <span id="fixedButton" style="border-style:solid;">fixed</span>&nbsp;&nbsp;&nbsp;&nbsp;
+        <span id="dynamicButton" style="border-style:solid;">dynamic</span>&nbsp;&nbsp;&nbsp;&nbsp;
+      </div>
     </div>
-  </div>
-  <div id="main">
+    <div id="graphMain">
     <!--<div class="container-fluid" id="canvasDiv">
       <canvas id="canvas" width="1000" height="800"></canvas>
     </div>-->
     <div class="container-fluid" id="drawingDiv">
       <div id="drawing"></div>
     </div>
-  </div></body>
-  </html>
+  </div>
+</div>
+<div id="landInfoDiv" off-canvas="landInfo left reveal">
+  <div class="pull-right" id="landInfoClose"><i class="close fa fa-times"></i></div>
+  <form id="f_landInfo">
+    <div class="form-group">
+      <label for="inputEmail3" class="form-control-label">名称</label>
+      <div class="">
+        <input type="text" class="form-control" name="a" placeholder="名称">
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="inputPassword3" class="form-control-label">区分1</label>
+      <div class="">
+        <input type="text" class="form-control" name="b" placeholder=""></input>
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="inputPassword3" class="form-control-label">ステータス</label>
+      <div class="">
+        <input type="text" class="form-control" name="c" placeholder=""></input>
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="inputPassword3" class="form-control-label">開始日</label>
+      <div class="">
+        <input type="text" class="form-control" name="ds" placeholder=""></input>
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="inputPassword3" class="form-control-label">区分2</label>
+      <div class="">
+        <input type="text" class="form-control" name="dss" placeholder=""></input>
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="inputPassword3" class="form-control-label">区分3</label>
+      <div class="">
+        <input type="text" class="form-control" name="dsh" placeholder=""></input>
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="inputPassword3" class="form-control-label">備考</label>
+      <div class="">
+        <textarea class="form-control" name="remark" placeholder="備考"></textarea>
+      </div>
+    </div>
+  </form>
+</div>
+<div id="backgroundImgDiv" style="display:none;">
+  <img id="patternImg_bg1" src="/img/bg1.jpg" style="display:none;" />
+  <img id="patternImg_bg2" src="/img/bg2.jpg" style="display:none;" />
+</div>
+</body>
+</html>

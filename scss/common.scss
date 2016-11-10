@@ -47,4 +47,15 @@
 // Utility classes
 @import "utilities";
 
+[off-canvas] {
+	background-color: $pre-bg; /* Basic background color, overwrite this in your own css. */
+	color: $pre-color; /* Basic colors, overwrite this in your own css. */
+}
 
+#landInfoDiv{
+	padding:0.5rem;
+	white-space: nowrap;
+	overflow-x: scroll;
+	overflow-y: hidden;
+	width:50rem;
+}

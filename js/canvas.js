@@ -119,11 +119,16 @@ var myDrawing = {
 
 
 $(function(){
+  var isEditGraphObject = false;
   var draw = SVG('drawing').size(300, 300);
   var rect = draw.rect(100, 100).attr({ fill: '#f06' });
   rect.draggable();
   var polygon = draw.polygon('0,0 110,10 100,50 50,100').fill('#00ffff').stroke({ width: 1 });
   polygon.draggable().on('dragmove', function(e){
+    if(!isEditGraphObject){
+      e.preventDefault();
+      return false;
+    }
     //if(e.currentTarget.attributes.points.)
     var points = this.array().value;
     var dragPosition = [e.detail.p.x, e.detail.p.y];
@@ -155,9 +160,62 @@ $(function(){
     //alert(e.currentTarg]et.attributes.points.nodeValue + " " + e.target.attributes.points.nodeValue);
     var h = e;
   });
-  polygon.on("click", function(){
+  polygon.on("click", function(event){
     //alert("クリック");
+    if(!isEditGraphObject){
+      // Stop default action and bubbling
+      event.stopPropagation();
+      event.preventDefault();
+
+      // Toggle the Slidebar with id 'id-1'
+      mySlidebar.toggle( 'id-1' );
+    }
   });
+
+        // Toggle Slidebars
+        $( '.toggle-id-1' ).on( 'click', function ( event ) {
+          // Stop default action and bubbling
+          event.stopPropagation();
+          event.preventDefault();
+
+          // Toggle the Slidebar with id 'id-1'
+          mySlidebar.toggle( 'id-1' );
+        } );
+
+        $( '.toggle-id-2' ).on( 'click', function ( event ) {
+          // Stop default action and bubbling
+          event.stopPropagation();
+          event.preventDefault();
+
+          // Toggle the Slidebar with id 'id-2'
+          mySlidebar.toggle( 'id-2' );
+        } );
+
+        $( '.toggle-id-3' ).on( 'click', function ( event ) {
+          // Stop default action and bubbling
+          event.stopPropagation();
+          event.preventDefault();
+
+          // Toggle the Slidebar with id 'id-3'
+          mySlidebar.toggle( 'id-3' );
+        } );
+
+        $( '.toggle-id-4' ).on( 'click', function ( event ) {
+          // Stop default action and bubbling
+          event.stopPropagation();
+          event.preventDefault();
+
+          // Toggle the Slidebar with id 'id-4'
+          mySlidebar.toggle( 'id-4' );
+        } );
+
+  //init action
+  var mySlidebar = new slidebars();
+  mySlidebar.init();
+  //var mySlidebar = new $.slidebars({
+  //  siteClose: true,
+  //  scrollLock: true
+  //});
 
 
 
