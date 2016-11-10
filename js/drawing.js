@@ -1,7 +1,10 @@
 var myDrawing = {
   D: {
+    LAST_MODIFIED_KEY: "lm",
+    SERVER_LAST_MODIFIED_KEY: "slm",
     LS:{
       KEY_PRESENT_LAND_INFO_LIST: "KEY_PRESENT_LAND_INFO",
+      KEY_SETUP: "KEY_SETUP",
       KEY_MAX_LANDINFO_ID: "KEY_LANDINFO_ID",
     },
     M:{
@@ -20,10 +23,26 @@ var myDrawing = {
         endHarvestDate: "deh",
         remark: "z",
         lastModified: "lm",
+        serverLastModified: "slm"
       },
     },
   },
+  date:{
+    getDatetime: function(){
+      var time = new Date();
+      return time.getFullYear() + "/" + ("0" + (time.getMonth() + 1)).slice(-2) + "/" + ("0" + time.getDate()).slice(-2) + " "
+      + ("0" + time.getHours()).slice(-2) + ":" + ("0" + time.getMinutes()).slice(-2) + ":" + ("0" + time.getSeconds()).slice(-2) + "."
+      + ("00" + time.getMilliseconds()).slice(-3);
+    },
+  },
   common: {
+    hasElements: function(jQueryObject){
+      if(jQueryObject[0] != null){
+        return true;
+      }else{
+        return false;
+      }
+    },
     convertSVGPlot: function(plots, magnification){
       var result = "";
       for(var index in plots){
@@ -44,15 +63,161 @@ var myDrawing = {
     },
     setInputField: function(formObject, json){
       for(var key in json){
-        var inputField = $('[name=' + key + ']', formObject[0]);
-        if(inputField != null){
-          if(inputField.attr('type') == "text"){
-            inputField.val(json[key])
+        var inputField = $('[name=' + key + ']', formObject);
+        if(myDrawing.common.hasElements(inputField)){
+          var tagName = inputField.prop("tagName");
+          if(tagName == "INPUT"){
+            var inputType = inputField.attr('type');
+            if(inputType == "radio"){
+              if(json[key] == inputField.val()){
+                inputField.prop("checked", true);
+              }
+            }else if(inputType == "checkbox"){
+              if($.isArray(json[key])){
+                var isCheck = false;
+                for(var index in json[key]){
+                  if(inputField.val() == json[key][index]){
+                    inputField.prop('checked', true);
+                    break;
+                  }
+                }
+                if(!isCheck){
+                  inputField.prop('checked', false);
+                }
+              }else{
+                if(inputField.val() == initValues[name]){
+                  inputField.prop('checked', true);
+                }else{
+                  inputField.prop('checked', false);
+                }
+              }
+              if(json[key] == inputField.val()){
+                inputField.prop("checked", true);
+              }
+            }else{
+              inputField.val(json[key]);
+            }
+          }else if(tagName == "SELECT"){
+            inputField.val(json[key]);
+          }else if(tagName == "TEXTAREA"){
+            inputField.val(json[key]);
           }
-
         }
       }
-    }
+    },
+    resetAllInputField: function(formObject, initValues){
+      var inputFields = $("[name]", formObject);
+      for(var i = 0; i < inputFields.length; i++){
+        var inputField = $(inputFields[i]);
+        var tagName = inputField.prop("tagName");
+        var name = inputField.attr("name");
+        if(name == null || name == ""){
+          continue;
+        }
+        if(tagName == "INPUT"){
+          var inputType = inputField.attr('type');
+          if(inputType == "radio"){
+            if(initValues != null && initValues[name] != null){
+              if(inputField.val() == initValues[name]){
+                inputField.prop('checked', true);
+              }else{
+                inputField.prop('checked', false);
+              }
+            }else{
+              inputField.prop('checked', false);
+            }
+          }else if(inputType == "checkbox"){
+            if(initValues != null && initValues[name] != null){
+              if($.isArray(initValues[name])){
+                var isInitCheck = false;
+                for(var index in initValues[name]){
+                  if(inputField.val() == initValues[name][index]){
+                    inputField.prop('checked', true);
+                    isInitCheck = true;
+                    break;
+                  }
+                }
+                if(!isInitCheck){
+                  inputField.prop('checked', false);
+                }
+              }else{
+                if(inputField.val() == initValues[name]){
+                  inputField.prop('checked', true);
+                }else{
+                  inputField.prop('checked', false);
+                }
+              }
+            }else{
+              inputField.prop('checked', false);
+            }
+          }else{
+            if(initValues != null && initValues[name] != null){
+              inputField.val(initValues[name]);
+            }else{
+              inputField.val("");
+            }
+          }
+        }else{ //SELECT TEXTAREA
+          if(initValues != null && initValues[name] != null){
+            inputField.val(initValues[name]);
+          }else{
+            inputField.val("");
+          }
+        }
+      }
+    },
+    updateJSON: function(json, formObject){
+      var checkedRadioCheckboxSelectName = {};
+      for(var key in json){
+        var inputField = $('[name=' + key + ']', formObject);
+        if(myDrawing.common.hasElements(inputField)){
+          var tagName = inputField.prop("tagName");
+          if(tagName == "INPUT"){
+            var inputType = inputField.attr('type');
+            if(inputType == "radio"){
+              if(checkedRadioCheckboxSelectName[key] == null){
+                var checkedObjects = $('[name=' + key + ']:checked', formObject);
+                if(myDrawing.common.hasElements(checkedObjects)){
+                  json[key] = checkedObjects.val();
+                }else{
+                  json[key] = "";
+                }
+              }
+            }else if(inputType == "checkbox"){
+              if(checkedRadioCheckboxSelectName[key] == null){
+                var checkedObjects = $('[name=' + key + ']:checked', formObject);
+                if(myDrawing.common.hasElements(checkedObjects)){
+                  var checkedValues = [];
+                  for(var i = 0,len= checkedObjects.length;i < len;i++){
+                    checkedValues[i] = checkedObjects[i].val();
+                  }
+                  json[key] = checkedValues;
+                }else{
+                  json[key] = "";
+                }
+              }
+            }else{
+              json[key] = inputField.val();
+            }
+          }else if(tagName == "SELECT"){
+            if(checkedRadioCheckboxSelectName[key] == null){
+              var selectedObjects = $('[name=' + key + ']:selected', formObject);
+              if(myDrawing.common.hasElements(selectedObjects)){
+                json[key] = selectedObjects.val();
+              }else{
+                json[key] = "";
+              }
+            }
+          }else if(tagName == "TEXTAREA"){
+            json[key] = inputField.val();
+          }
+        }
+      }
+      if(json[myDrawing.D.LAST_MODIFIED_KEY] != null){
+        json[myDrawing.D.LAST_MODIFIED_KEY] = myDrawing.date.getDatetime();
+      }
+      return json;
+    },
   },
   rect : {
     isIncludeUp: function(position, linePoints1, linePoints2){
@@ -115,12 +280,12 @@ var myDrawing = {
       return polygon;
     },
   },
-  ls:{
-    lRead: function(key){
-      localStrage.getItem(key);
+  storage:{
+    load: function(key){
+      return window.localStorage.getItem(key);
     },
-    lSave: function(key, value){
-      localStorage.setItem(key, value);
+    save: function(key, value){
+      window.localStorage.setItem(key, value);
     },
   },
   ajax:{
@@ -135,6 +300,15 @@ var myDrawing = {
       }).done(successFunc).fail(function(a,x,d){
         if($.isFunction(errorFunc)){
           errorFunc;
+        }
+      });
+    }
+  },
+  maintenance:{
+    checkVersion: function(actionWhenVersionUp){
+      var result = myDrawing.ajax.post("/sampleJson/getCurrentVersion.json", null, function(data){
+        if(gSetup[currentVersion] < data.currentVersion){
+          actionWhenVersionUp();
         }
       });
     }
@@ -155,7 +329,7 @@ $(function(){
 
   /* ロカールストレージから、私用中の土地情報一覧取得 */
   var lReadPresentLandInfoList = function(){
-    var jsonText = localStorage.getItem(myDrawing.D.LS.KEY_PRESENT_LAND_INFO_LIST);
+    var jsonText = myDrawing.storage.load(myDrawing.D.LS.KEY_PRESENT_LAND_INFO_LIST);
     if(jsonText != null){
       landInfoList = JSON.parse(jsonText);
       drawLandInfo(landInfoList);
@@ -164,9 +338,9 @@ $(function(){
 
   var getLandInfoFromServer = function(){
     var result = myDrawing.ajax.post("/sampleJson/landInfoSummaryList.json", null, function(data){
-      if(landInfoList.lastModified == null || landInfoList.lastModified < data.lastModified){
+      if(landInfoList[myDrawing.D.LAST_MODIFIED_KEY] == null || landInfoList[myDrawing.D.LAST_MODIFIED_KEY] < data[myDrawing.D.LAST_MODIFIED_KEY]){
         landInfoList = data;
-        localStorage.setItem(myDrawing.D.LS.KEY_PRESENT_LAND_INFO_LIST, JSON.stringify(landInfoList));
+        myDrawing.storage.save(myDrawing.D.LS.KEY_PRESENT_LAND_INFO_LIST, JSON.stringify(landInfoList));
         drawLandInfo(landInfoList);
       }
     });
@@ -180,6 +354,8 @@ $(function(){
       var clickEvent = function(id){
         // Toggle the Slidebar with id 'landInfo'
         mySlidebar.toggle('landInfo');
+        myDrawing.common.resetAllInputField($("#f_landInfo"));
+        //myDrawing.common.resetAllInputField($("#f_landInfo"),{"a":"default","checkbox2":["0", "1"],"checkbox":"2","radio2":"1","select2":"1"});
         myDrawing.common.setInputField($("#f_landInfo"), list[id]);
         //$('').val(landInfo[dkey.name]);
       };
@@ -195,7 +371,7 @@ $(function(){
               event.stopPropagation();
               event.preventDefault();
 
-              clickEvent(polygon.id);
+              clickEvent(this.id);
             }
           });
           polygon.on("dblclick", function(event){
@@ -204,7 +380,7 @@ $(function(){
               event.stopPropagation();
               event.preventDefault();
 
-              clickEvent(polygon.id);
+              clickEvent(this.id);
             }
           });
         }
@@ -231,6 +407,22 @@ $(function(){
   });
 
   $('#landInfoClose').on("click", function(){
+    mySlidebar.close('landInfo');
+  });
+
+  //土地情報サマリ更新処理
+  $('#btn_landInfoUpdate').on("click", function(){
+    var targetId = $('#landInfoId').val();
+    //入力内容で更新
+    landInfoList.root[targetId] = myDrawing.common.updateJSON(landInfoList.root[targetId], $("#f_landInfo"));
+    var lastModified = landInfoList.root[targetId][myDrawing.D.LAST_MODIFIED_KEY];
+    //サーバ側に更新内容の送信
+    if(true){
+      landInfoList.root[targetId][myDrawing.D.SERVER_LAST_MODIFIED_KEY] = lastModified;
+    }
+    //ローカル側に保存
+    landInfoList[myDrawing.D.LAST_MODIFIED_KEY] = lastModified;
+    myDrawing.storage.save(myDrawing.D.LS.KEY_PRESENT_LAND_INFO_LIST, JSON.stringify(landInfoList));
     mySlidebar.close('landInfo');
   });
   //init action
