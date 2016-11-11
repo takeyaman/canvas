@@ -244,7 +244,7 @@ var myDrawing = {
     makePolygon: function(draw, id, plots, background, strokes, gSetup){
       var polygon = draw.polygon(plots).fill(background).stroke(strokes);
       polygon.id = id;
-      polygon.draggable().on('dragmove', function(e){
+      /*polygon.draggable().on('dragmove', function(e){
         if(!gSetup.isEditGraphObject){
           e.preventDefault();
           return false;
@@ -276,8 +276,39 @@ var myDrawing = {
             this.plot(points);
           }
         }
-      });
+      });*/
       return polygon;
+    },
+    polygonDraggable: function(){
+      return function(e){
+        var points = this.array().value;
+        var dragPosition = [e.detail.p.x, e.detail.p.y];
+        if(dragPosition[0] - 5 <= points[0][0] && dragPosition[0] + 5 >= points[0][0] && dragPosition[1] - 5 <= points[0][1] && dragPosition[1] + 5 >= points[0][1]){
+          e.preventDefault();
+          if(myDrawing.rect.isIncludeUp(dragPosition, points[1], points[2]) && myDrawing.rect.isIncludeUp(dragPosition, points[2], points[3])){
+            points[0] = dragPosition;
+            this.plot(points);
+          }
+        }else if(dragPosition[0] - 5 <= points[1][0] && dragPosition[0] + 5 >= points[1][0] && dragPosition[1] - 5 <= points[1][1] && dragPosition[1] + 5 >= points[1][1]){
+          e.preventDefault();
+          if(myDrawing.rect.isIncludeUp(dragPosition, points[2], points[3]) && myDrawing.rect.isIncludeUp(dragPosition, points[3], points[0])){
+            points[1] = dragPosition;
+            this.plot(points);
+          }
+        }else if(dragPosition[0] - 5 <= points[2][0] && dragPosition[0] + 5 >= points[2][0] && dragPosition[1] - 5 <= points[2][1] && dragPosition[1] + 5 >= points[2][1]){
+          e.preventDefault();
+          if(myDrawing.rect.isIncludeUp(dragPosition, points[3], points[0]) && myDrawing.rect.isIncludeUp(dragPosition, points[0], points[1])){
+            points[2] = dragPosition;
+            this.plot(points);
+          }
+        }else if(dragPosition[0] - 5 <= points[3][0] && dragPosition[0] + 5 >= points[3][0] && dragPosition[1] - 5 <= points[3][1] && dragPosition[1] + 5 >= points[3][1]){
+          e.preventDefault();
+          if(myDrawing.rect.isIncludeUp(dragPosition, points[0], points[1]) && myDrawing.rect.isIncludeUp(dragPosition, points[1], points[2])){
+            points[3] = dragPosition;
+            this.plot(points);
+          }
+        }
+      };
     },
   },
   storage:{
@@ -306,7 +337,7 @@ var myDrawing = {
   },
   maintenance:{
     checkVersion: function(actionWhenVersionUp){
-      var result = myDrawing.ajax.post("/sampleJson/getCurrentVersion.json", null, function(data){
+      var result = myDrawing.ajax.post("sampleJson/getCurrentVersion.json", null, function(data){
         if(gSetup[currentVersion] < data.currentVersion){
           actionWhenVersionUp();
         }
@@ -324,6 +355,7 @@ $(function(){
   //var data = {};
   var landInfoList = {};
   var landDetailList = {};
+  var svgObjects = {};
   var mySlidebar = new slidebars();
   var draw = SVG('drawing').size(300, 300);
 
@@ -337,7 +369,7 @@ $(function(){
   };
 
   var getLandInfoFromServer = function(){
-    var result = myDrawing.ajax.post("/sampleJson/landInfoSummaryList.json", null, function(data){
+    var result = myDrawing.ajax.post("sampleJson/landInfoSummaryList.json", null, function(data){
       if(landInfoList[myDrawing.D.LAST_MODIFIED_KEY] == null || landInfoList[myDrawing.D.LAST_MODIFIED_KEY] < data[myDrawing.D.LAST_MODIFIED_KEY]){
         landInfoList = data;
         myDrawing.storage.save(myDrawing.D.LS.KEY_PRESENT_LAND_INFO_LIST, JSON.stringify(landInfoList));
@@ -384,6 +416,7 @@ $(function(){
             }
           });
         }
+        svgObjects[polygon.id] = polygon;
       }
     }catch(e){
       console.log('[setLandInfoList error] ' + e.message);
@@ -396,14 +429,22 @@ $(function(){
   $('#dynamicButton').on("click", function(){
     if(gSetup.isEditGraphObject){
       gSetup.isEditGraphObject = false;
+      for(var index in svgObjects){
+        svgObjects[index].draggable(false);
+      }
     }else{
       gSetup.isEditGraphObject = true;
+      for(var index in svgObjects){
+        svgObjects[index].draggable().on('dragmove', myDrawing.rect.polygonDraggable());
+      }
     }
   });
 
   $('#makeObjectButton').on("click", function(){
     var fill = $('#patternImg_bg1').attr('src');
     var polygon = myDrawing.rect.makeNewPolygon(draw, '0,0 110,10 100,50 50,100', fill, { width: 1 }, gSetup, mySlidebar);
+    alert(polygon);
+
   });
 
   $('#landInfoClose').on("click", function(){
