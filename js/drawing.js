@@ -357,7 +357,43 @@ $(function(){
   var landDetailList = {};
   var svgObjects = {};
   var mySlidebar = new slidebars();
-  var draw = SVG('drawing').size(300, 300);
+  var draw = SVG('drawing').size(2000, 2000);
+  var makeMemori = function(targetID, direction, maxSize){
+    $('#' + targetID).empty();
+    var targetSVGObject = SVG(targetID);
+    var x,y,memoriX,memoriY,memoriFunc;
+    if(direction == 'x'){
+      targetSVGObject.size(maxSize, 10);
+      x = maxSize;
+      y = 0;
+      memoriFunc = function(draw, position, length, className){
+        draw.line(position, 0, position, length).addClass(className);
+        //return $('<path d="M ' + position + ',0 v ' + length + '" />');
+      };
+
+    }else{
+      targetSVGObject.size(10, maxSize);
+      x = 0;
+      y = maxSize;
+      memoriFunc = function(draw, position, length, className){
+        draw.line(0, position, length, position).addClass(className);
+        //return $('<path d="M 0,' + position + ' h ' + length + '" />');
+      };
+    }
+    //targetSVGObject.empty();
+    for(var i = 0; i <= maxSize; i=i+10){
+      if(i % 100 != 0){
+        memoriFunc(targetSVGObject, i, 7, "subLine");
+      }
+    }
+    for(var i = 0; i <= maxSize; i=i+100){
+      memoriFunc(targetSVGObject, i, 10, "mainLine");
+    }
+    //var subLineGroup = $('<g class="subLine" stroke="#000" stroke-width="1">');
+    targetSVGObject.line(0,0,x,y).addClass("mainLine");
+  };
+  makeMemori('xMemori', "x", 2000);
+  makeMemori('yMemori', "y", 2000);
 
   /* ロカールストレージから、私用中の土地情報一覧取得 */
   var lReadPresentLandInfoList = function(){

@@ -57,3 +57,23 @@
 	white-space: nowrap;
 	width:100%;
 }
+
+#drawingDiv{
+	margin-left:10px;
+	margin-top:10px;
+}
+
+#drawingDiv{
+	.mainLine{
+		stroke: #777;
+		stroke-width: 1;
+	}
+	.subLine{
+		stroke: #bbb;
+		stroke-width: 1;
+	}
+
+	#drawing{
+
+	}
+}

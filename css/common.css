@@ -4684,3 +4684,14 @@ a.text-gray-dark:focus, a.text-gray-dark:hover {
   padding: 0.5rem;
   white-space: nowrap;
   width: 100%; }
+
+#drawingDiv {
+  margin-left: 10px;
+  margin-top: 10px; }
+
+#drawingDiv .mainLine {
+  stroke: #777;
+  stroke-width: 1; }
+#drawingDiv .subLine {
+  stroke: #bbb;
+  stroke-width: 1; }
