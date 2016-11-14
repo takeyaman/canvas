@@ -11,7 +11,7 @@
   <!--<script src="https://cdnjs.cloudflare.com/ajax/libs/iScroll/5.1.3/iscroll.min.js"></script>-->
   <script type="text/javascript" src="js/jquery.min.js">
   </script>
-  <script type="text/javascript" src="js/jcanvas.min.js">
+  <script type="text/javascript" src="js/jquery.event.dblTap.js">
   </script>
   <script type="text/javascript" src="js/tether.min.js">
   </script>
@@ -42,75 +42,135 @@
     <div class="container-fluid">
       <div id="drawingDiv" style="">
         <div id="xMemori" style="line-height:0;">
-          <svg width="2000" height="10" xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:svgjs="http://svgjs.com/svgjs">
-             <!--<path d="M 0,5 h 490" stroke="#000"></path>
-             <g class="mainLine" stroke="#000" stroke-width="1"><path d="M 0,0 L 2000,0 stroke=" #000"="" stroke-width="1"></path><path d="M 0,0 v 10"></path><path d="M 100,0 v 10"></path><path d="M 200,0 v 10"></path><path d="M 300,0 v 10"></path><path d="M 400,0 v 10"></path><path d="M 500,0 v 10"></path><path d="M 600,0 v 10"></path><path d="M 700,0 v 10"></path><path d="M 800,0 v 10"></path><path d="M 900,0 v 10"></path><path d="M 1000,0 v 10"></path><path d="M 1100,0 v 10"></path><path d="M 1200,0 v 10"></path><path d="M 1300,0 v 10"></path><path d="M 1400,0 v 10"></path><path d="M 1500,0 v 10"></path><path d="M 1600,0 v 10"></path><path d="M 1700,0 v 10"></path><path d="M 1800,0 v 10"></path><path d="M 1900,0 v 10"></path></g>-->
-          </svg>
         </div>
         <div id="drawing" style="line-height:0"></div>
         <div id="yMemori" style="line-height:0;position:relative;top:-2000px;left:-10px;z-index:-10;">
-          <svg width="10" height="2000" xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:svgjs="http://svgjs.com/svgjs">
-          </div>
         </div>
       </div>
     </div>
-    <div id="landInfoDiv" off-canvas="landInfo left reveal">
-      <div class="pull-right" id="landInfoClose"><i class="close fa fa-times"></i></div>
-      <form id="f_landInfo">
-        <div class="form-group">
-          <label class="form-control-label">名称</label>
-          <div class="">
-            <input type="text" class="form-control" name="a" placeholder="名称">
+  </div>
+  <div id="landInfoDiv" off-canvas="landInfo bottom overlay">
+    <div class="pull-right" id="landInfoClose" style="position:relative;z-index:1;"><i class="close fa fa-times"></i></div>
+    <form id="f_landInfo">
+      <div class="row">
+        <div class="col-xl-12">
+          <div class="form-group form-inline">
+            <label class="form-control-label">名称</label>
+            <input type="text" class="form-control" name="a" maxlength="30" style="width:30rem;"></input>
           </div>
         </div>
-        <div class="form-group">
-          <label class="form-control-label">区分1</label>
-          <div class="">
-            <input type="text" class="form-control" name="b" placeholder=""></input>
+      </div>
+      <div class="row">
+        <div class="col-sm-12 col-md-7">
+          <div class="form-group form-inline">
+            <label class="form-control-label">区分1</label>
+            <input type="text" class="form-control" name="b" maxlength="21" style="width:21rem"></input>
           </div>
         </div>
-        <div class="form-group">
-          <label class="form-control-label">ステータス</label>
-          <div class="">
-            <input type="text" class="form-control" name="c" placeholder=""></input>
+        <div class="col-sm-12 col-md-5">
+          <div class="form-group form-inline">
+            <label class="form-control-label">ステータス</label>
+            <input type="text" class="form-control" name="c" style="width:7rem;"></input>
           </div>
         </div>
-        <div class="form-group">
-          <label class="form-control-label">開始日</label>
-          <div class="">
-            <input type="text" class="form-control" name="ds" placeholder=""></input>
+      </div>
+      <div class="row">
+        <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
+          <div class="form-group form-inline">
+            <label class="form-control-label">種まき(植え付け)</label>
+            <span>
+              <input type="text" class="form-control noMarginright" name="dss"  style="width:7rem;display:inline;"></input>
+              ～
+              <input type="text" class="form-control noMarginright" name="des"  style="width:7rem;display:inline;"></input>
+            </span>
           </div>
         </div>
-        <div class="form-group">
-          <label class="form-control-label">区分2</label>
-          <div class="">
-            <input type="text" class="form-control" name="dss" placeholder=""></input>
+        <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
+          <div class="form-group form-inline">
+            <label class="form-control-label">収穫</label>
+            <span style="display:inline-block;">
+              <input type="text" class="form-control noMarginright" name="dsh" style="width:7rem;display:inline;"></input>
+              ～
+              <input type="text" class="form-control noMarginright" name="deh" style="width:7rem;display:inline;"></input>
+            </span>
           </div>
         </div>
-        <div class="form-group">
-          <label class="form-control-label">区分3</label>
-          <div class="">
-            <input type="text" class="form-control" name="dsh" placeholder=""></input>
+      </div>
+      <div class="row">
+        <div class="col-xs-12">
+          <div class="form-group form-inline">
+            <label class="form-control-label">備考</label>
+            <textarea class="form-control" name="z" style="width:95%;"></textarea>
           </div>
         </div>
-        <div class="form-group">
-          <label class="form-control-label">備考</label>
-          <div class="">
-            <textarea class="form-control" name="z" placeholder="備考"></textarea>
-          </div>
+      </div>
+      <div class="row">
+        <div class="col-xs-12">
+          <span id="btn_landInfoUpdate" class="btn btn-primary pull-left">更新</span>
+          <span id="btn_landDetailListOpen" class="btn btn-primary pull-right">活動一覧表示</span>
         </div>
-        <div class="form-group">
-          <div class="">
-            <span id="btn_landInfoUpdate" class="btn btn-primary">更新</span>
-          </div>
+      </div>
+      <input type="hidden" id="landInfoId" name="id" value="" />
+      <!--<div><input type="radio" name="radio" value="1">はい&nbsp;&nbsp;&nbsp;&nbsp;<input type="radio" name="radio" value="0">いいえ</div><div><input type="radio" name="radio2" value="1">はい&nbsp;&nbsp;&nbsp;&nbsp;<input type="radio" name="radio2" value="0">いいえ</div><div><input type="checkbox" name="checkbox" value="0"><input type="checkbox" name="checkbox" value="1"><input type="checkbox" name="checkbox" value="2"></div><div><input type="checkbox" name="checkbox2" value="0"><input type="checkbox" name="checkbox2" value="1"><input type="checkbox" name="checkbox2" value="2"></div><div><select name="select"><option value="">選択してください</option><option value="1">1</option><option value="2">2</option></select><select name="select2"><option value="">選択してください</option><option value="1">1</option><option value="2">2</option></select></div>-->
+    </form>
+  </div>
+  <div id="landDetailListDiv" off-canvas="landDetailList left reveal">
+    <div class="pull-right" id="landDetailListClose"><i class="close fa fa-times"></i></div>
+    <form id="f_landDetail">
+      <div class="form-group">
+        <label class="form-control-label">名称</label>
+        <div class="">
+          <input type="text" class="form-control" name="a" placeholder="名称">
         </div>
-        <input type="hidden" id="landInfoId" name="id" value="">
-        <!--<div><input type="radio" name="radio" value="1">はい&nbsp;&nbsp;&nbsp;&nbsp;<input type="radio" name="radio" value="0">いいえ</div><div><input type="radio" name="radio2" value="1">はい&nbsp;&nbsp;&nbsp;&nbsp;<input type="radio" name="radio2" value="0">いいえ</div><div><input type="checkbox" name="checkbox" value="0"><input type="checkbox" name="checkbox" value="1"><input type="checkbox" name="checkbox" value="2"></div><div><input type="checkbox" name="checkbox2" value="0"><input type="checkbox" name="checkbox2" value="1"><input type="checkbox" name="checkbox2" value="2"></div><div><select name="select"><option value="">選択してください</option><option value="1">1</option><option value="2">2</option></select><select name="select2"><option value="">選択してください</option><option value="1">1</option><option value="2">2</option></select></div>-->
-      </form>
-    </div>
-    <div id="backgroundImgDiv" style="display:none;">
-      <img id="patternImg_bg1" src="img/bg1.jpg" style="display:none;" />
-      <img id="patternImg_bg2" src="img/bg2.jpg" style="display:none;" />
-    </div>
-  </body>
-  </html>
+      </div>
+      <div class="form-group">
+        <label class="form-control-label">区分1</label>
+        <div class="">
+          <input type="text" class="form-control" name="b" placeholder=""></input>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-control-label">ステータス</label>
+        <div class="">
+          <input type="text" class="form-control" name="c" placeholder=""></input>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-control-label">開始日</label>
+        <div class="">
+          <input type="text" class="form-control" name="ds" placeholder=""></input>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-control-label">区分2</label>
+        <div class="">
+          <input type="text" class="form-control" name="dss" placeholder=""></input>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-control-label">区分3</label>
+        <div class="">
+          <input type="text" class="form-control" name="dsh" placeholder=""></input>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-control-label">備考</label>
+        <div class="">
+          <textarea class="form-control" name="z" placeholder="備考"></textarea>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="">
+          <span id="btn_landInfoUpdate" class="btn btn-primary">更新</span>
+        </div>
+      </div>
+      <input type="hidden" id="landInfoId" name="id" value="">
+      <!--<div><input type="radio" name="radio" value="1">はい&nbsp;&nbsp;&nbsp;&nbsp;<input type="radio" name="radio" value="0">いいえ</div><div><input type="radio" name="radio2" value="1">はい&nbsp;&nbsp;&nbsp;&nbsp;<input type="radio" name="radio2" value="0">いいえ</div><div><input type="checkbox" name="checkbox" value="0"><input type="checkbox" name="checkbox" value="1"><input type="checkbox" name="checkbox" value="2"></div><div><input type="checkbox" name="checkbox2" value="0"><input type="checkbox" name="checkbox2" value="1"><input type="checkbox" name="checkbox2" value="2"></div><div><select name="select"><option value="">選択してください</option><option value="1">1</option><option value="2">2</option></select><select name="select2"><option value="">選択してください</option><option value="1">1</option><option value="2">2</option></select></div>-->
+    </form>
+  </div>
+  <div id="backgroundImgDiv" style="display:none;">
+    <img id="patternImg_bg1" src="img/bg1.jpg" style="display:none;" />
+    <img id="patternImg_bg2" src="img/bg2.jpg" style="display:none;" />
+  </div>
+</body>
+</html>

@@ -55,6 +55,13 @@
 #landInfoDiv{
 	padding:0.5rem;
 	white-space: nowrap;
+	height:19rem;
+	width:100%;
+}
+
+#landDetailListDiv{
+	padding:0.5rem;
+	white-space: nowrap;
 	width:100%;
 }
 
@@ -64,16 +71,35 @@
 }
 
 #drawingDiv{
+	.graphMemoriText{
+		font-size: 1rem;
+		stroke: #cccccc;
+		border:300;
+		text-align:left;
+	}
+
 	.mainLine{
-		stroke: #777;
+		stroke: #a0a0a0;
 		stroke-width: 1;
 	}
 	.subLine{
-		stroke: #bbb;
-		stroke-width: 1;
+		stroke: #999999;
+		stroke-width: 0.5;
+		stroke-dasharray: 2 3;
 	}
 
 	#drawing{
 
+	}
+}
+
+form{
+	.form-inline{
+		input{
+			margin-right:1rem;
+		}
+		input.noMarginright{
+			margin-right:inherit;
+		}
 	}
 }

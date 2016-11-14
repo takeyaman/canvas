@@ -350,20 +350,19 @@ var myDrawing = {
 $(function(){
   var gSetup = {};
   gSetup.isEditGraphObject = false;
-  gSetup.magnification = 1;
+  gSetup.magnification = 1;//1:1px=1cm, 10:1px=10cm, 100:1px=1m
   gSetup.landInfoId = -1;
   //var data = {};
   var landInfoList = {};
   var landDetailList = {};
   var svgObjects = {};
-  var mySlidebar = new slidebars();
-  var draw = SVG('drawing').size(2000, 2000);
-  var makeMemori = function(targetID, direction, maxSize){
-    $('#' + targetID).empty();
-    var targetSVGObject = SVG(targetID);
-    var x,y,memoriX,memoriY,memoriFunc;
+  var draw = null;
+  var mySlidebar = null;
+
+  /* グラフの罫線を引く */
+  var makeMemori = function(targetSVGObject, direction, maxSize, maxMemoriSize){
+    var x,y,memoriFunc;
     if(direction == 'x'){
-      targetSVGObject.size(maxSize, 10);
       x = maxSize;
       y = 0;
       memoriFunc = function(draw, position, length, className){
@@ -372,7 +371,6 @@ $(function(){
       };
 
     }else{
-      targetSVGObject.size(10, maxSize);
       x = 0;
       y = maxSize;
       memoriFunc = function(draw, position, length, className){
@@ -383,17 +381,41 @@ $(function(){
     //targetSVGObject.empty();
     for(var i = 0; i <= maxSize; i=i+10){
       if(i % 100 != 0){
-        memoriFunc(targetSVGObject, i, 7, "subLine");
+        memoriFunc(targetSVGObject, i, maxMemoriSize, "subLine");
       }
     }
     for(var i = 0; i <= maxSize; i=i+100){
-      memoriFunc(targetSVGObject, i, 10, "mainLine");
+      memoriFunc(targetSVGObject, i, maxMemoriSize, "mainLine");
     }
     //var subLineGroup = $('<g class="subLine" stroke="#000" stroke-width="1">');
     targetSVGObject.line(0,0,x,y).addClass("mainLine");
   };
-  makeMemori('xMemori', "x", 2000);
-  makeMemori('yMemori', "y", 2000);
+
+  /* グラフのメモリテキストを追加 */
+  var makeMemoriText = function(targetSVGObject, direction, maxSize, maxTextSize){
+    var x,y,memoriFunc;
+    if(direction == 'x'){
+      targetSVGObject.size(maxSize, maxTextSize + "rem");
+      x = maxSize;
+      y = 0;
+      memoriFunc = function(draw, position, maxTextSize, className){
+        var text = draw.plain(position / 100 * gSetup.magnification);
+        text.x(position).dx(-text.width() / 2).y(0).addClass(className);
+      };
+    }else{
+      targetSVGObject.size((maxTextSize + 3) + "rem", maxSize);
+      x = 0;
+      y = maxSize;
+      memoriFunc = function(draw, position, maxTextSize, className){
+        var text = draw.plain(position / 100 * gSetup.magnification);
+        text.y(position).dy(-text.width() / 2).x(0).addClass(className);
+      };
+    }
+    //targetSVGObject.empty();
+    for(var i = 100; i <= maxSize; i=i+100){
+      memoriFunc(targetSVGObject, i, maxTextSize, "graphMemoriText");
+    }
+  };
 
   /* ロカールストレージから、私用中の土地情報一覧取得 */
   var lReadPresentLandInfoList = function(){
@@ -421,7 +443,7 @@ $(function(){
       var dkey = myDrawing.D.M.LI_S;
       var clickEvent = function(id){
         // Toggle the Slidebar with id 'landInfo'
-        mySlidebar.toggle('landInfo');
+        mySlidebar.open('landInfo');
         myDrawing.common.resetAllInputField($("#f_landInfo"));
         //myDrawing.common.resetAllInputField($("#f_landInfo"),{"a":"default","checkbox2":["0", "1"],"checkbox":"2","radio2":"1","select2":"1"});
         myDrawing.common.setInputField($("#f_landInfo"), list[id]);
@@ -459,6 +481,12 @@ $(function(){
     }
   }
 
+  var clearAllGraph = function(){
+    $('#xMemori').empty();
+    $('#yMemori').empty();
+    $('#drawing').empty();
+  };
+
   //var rect = draw.rect(100, 100).attr({ fill: '#f06' });
   //rect.draggable();
 
@@ -479,7 +507,6 @@ $(function(){
   $('#makeObjectButton').on("click", function(){
     var fill = $('#patternImg_bg1').attr('src');
     var polygon = myDrawing.rect.makeNewPolygon(draw, '0,0 110,10 100,50 50,100', fill, { width: 1 }, gSetup, mySlidebar);
-    alert(polygon);
 
   });
 
@@ -502,9 +529,24 @@ $(function(){
     myDrawing.storage.save(myDrawing.D.LS.KEY_PRESENT_LAND_INFO_LIST, JSON.stringify(landInfoList));
     mySlidebar.close('landInfo');
   });
+
+  $('#btn_landDetailListOpen').on('click', function(){
+      //alert("");
+  });
+
   //init action
+  mySlidebar = new slidebars();
+  clearAllGraph();
+  draw = SVG('drawing').size(2000, 2000);
   mySlidebar.init();
   gSetup.landInfoId = 1;
+
+  makeMemoriText(SVG('xMemori'), "x", 2000, 1);
+  makeMemoriText(SVG('yMemori'), "y", 2000, 1);
+  makeMemori(draw, "x", 2000, 2000);
+  makeMemori(draw, "y", 2000, 2000);
+
+
   if (!window.localStorage) {
     alert("ブラウザのローカルストレージを有効にしてください。");
   }
