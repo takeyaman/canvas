@@ -47,6 +47,8 @@
 // Utility classes
 @import "utilities";
 
+$landInfoDivHeight: 19rem;
+
 [off-canvas] {
 	background-color: $pre-bg; /* Basic background color, overwrite this in your own css. */
 	color: $pre-color; /* Basic colors, overwrite this in your own css. */
@@ -55,7 +57,7 @@
 #landInfoDiv{
 	padding:0.5rem;
 	white-space: nowrap;
-	height:19rem;
+	height:$landInfoDivHeight;
 	width:100%;
 }
 
@@ -63,6 +65,7 @@
 	padding:0.5rem;
 	white-space: nowrap;
 	width:100%;
+	z-index:101;
 }
 
 #drawingDiv{
@@ -74,8 +77,8 @@
 	.graphMemoriText{
 		font-size: 1rem;
 		stroke: #cccccc;
-		border:300;
 		text-align:left;
+		font-weight:300;
 	}
 
 	.mainLine{
@@ -102,4 +105,33 @@ form{
 			margin-right:inherit;
 		}
 	}
+}
+
+#landInfoClose,#landDetailListClose,#setupMenuClose{
+	position: absolute;
+	top:0.5rem;
+	right:0.5rem;
+	z-index:2;
+}
+
+#setupIcon{
+	border:solid 0.1rem #ffffff;
+	background-color:#777777;
+	line-height:0;
+	font-size:2rem;
+	color:#ffffff;
+	padding:0px 4px;
+	display:inline-block;
+	position:fixed;
+	top:1rem;
+	right:2rem;
+	z-index:2;
+}
+
+#btn_landDetailListOpen{
+	display:inline-block;
+	position:fixed;
+	bottom:$landInfoDivHeight;
+	right:2rem;
+	z-index:2;
 }

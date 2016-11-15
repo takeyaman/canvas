@@ -350,7 +350,10 @@ var myDrawing = {
 $(function(){
   var gSetup = {};
   gSetup.isEditGraphObject = false;
-  gSetup.magnification = 1;//1:1px=1cm, 10:1px=10cm, 100:1px=1m
+  gSetup.landSetup = {};
+  gSetup.landSetup.magnification = 1;//1:1px=1cm, 10:1px=10cm, 100:1px=1m
+  gSetup.landSetup.width = 20;
+  gSetup.landSetup.height = 20;
   gSetup.landInfoId = -1;
   //var data = {};
   var landInfoList = {};
@@ -399,7 +402,7 @@ $(function(){
       x = maxSize;
       y = 0;
       memoriFunc = function(draw, position, maxTextSize, className){
-        var text = draw.plain(position / 100 * gSetup.magnification);
+        var text = draw.plain(position / 100 * gSetup.landSetup.magnification);
         text.x(position).dx(-text.width() / 2).y(0).addClass(className);
       };
     }else{
@@ -407,7 +410,7 @@ $(function(){
       x = 0;
       y = maxSize;
       memoriFunc = function(draw, position, maxTextSize, className){
-        var text = draw.plain(position / 100 * gSetup.magnification);
+        var text = draw.plain(position / 100 * gSetup.landSetup.magnification);
         text.y(position).dy(-text.width() / 2).x(0).addClass(className);
       };
     }
@@ -444,6 +447,7 @@ $(function(){
       var clickEvent = function(id){
         // Toggle the Slidebar with id 'landInfo'
         mySlidebar.open('landInfo');
+        $('#btn_landDetailListOpen').show();
         myDrawing.common.resetAllInputField($("#f_landInfo"));
         //myDrawing.common.resetAllInputField($("#f_landInfo"),{"a":"default","checkbox2":["0", "1"],"checkbox":"2","radio2":"1","select2":"1"});
         myDrawing.common.setInputField($("#f_landInfo"), list[id]);
@@ -453,7 +457,7 @@ $(function(){
         var landInfo = list[landInfoId];
         var svgType = landInfo[dkey.svgType];
         if(svgType === "4"){
-          var polygon = myDrawing.rect.makePolygon(draw, landInfoId, myDrawing.common.convertSVGPlot(landInfo[dkey.abstractPlots], gSetup.magnification),
+          var polygon = myDrawing.rect.makePolygon(draw, landInfoId, myDrawing.common.convertSVGPlot(landInfo[dkey.abstractPlots], gSetup.landSetup.magnification),
            myDrawing.common.getBackground(landInfo[dkey.type]), { width: 1 }, gSetup);
           polygon.on("click", function(event){
             if(!gSetup.isEditGraphObject){
@@ -470,6 +474,15 @@ $(function(){
               event.stopPropagation();
               event.preventDefault();
 
+              clickEvent(this.id);
+            }
+          });
+          polygon.on("dblTap", function(){
+            if(gSetup.isEditGraphObject){
+              // Stop default action and bubbling
+              event.stopPropagation();
+              event.preventDefault();
+              alert("");
               clickEvent(this.id);
             }
           });
@@ -512,6 +525,7 @@ $(function(){
 
   $('#landInfoClose').on("click", function(){
     mySlidebar.close('landInfo');
+    $('#btn_landDetailListOpen').hide();
   });
 
   //土地情報サマリ更新処理
@@ -528,23 +542,66 @@ $(function(){
     landInfoList[myDrawing.D.LAST_MODIFIED_KEY] = lastModified;
     myDrawing.storage.save(myDrawing.D.LS.KEY_PRESENT_LAND_INFO_LIST, JSON.stringify(landInfoList));
     mySlidebar.close('landInfo');
+    $('#btn_landDetailListOpen').hide();
   });
 
-  $('#btn_landDetailListOpen').on('click', function(){
+  $('#btn_landDetailListOpen').on('dblTap', function(){
+    mySlidebar.open('landDetailList');
+    $('#btn_landDetailListOpen').hide();
       //alert("");
+    });
+
+  $('#landDetailListClose').on("click", function(){
+    mySlidebar.close('landDetailList');
+    mySlidebar.open('landInfo');
+    $('#btn_landDetailListOpen').show();
   });
+
+  $('#setupIcon').on("click", function(){
+    mySlidebar.open('setupMenu');
+    $('#btn_landDetailListOpen').hide();
+  });
+
+  $('#setupMenuClose').on("click", function(){
+    mySlidebar.close('setupMenu');
+    $('#collapseLandSize').collapse('hide');
+    $('#collapseLandMagnification').collapse('hide');
+  });
+
+  //setup 土地サイズ
+  $('#collapseLandSize').on('show.bs.collapse', function (){
+    //$('#collapseLandMagnification').collapse('hide');
+    var form = $('#f_setupLandSize');
+    myDrawing.common.resetAllInputField(form);
+    //myDrawing.common.resetAllInputField($("#f_landInfo"),{"a":"default","checkbox2":["0", "1"],"checkbox":"2","radio2":"1","select2":"1"});
+    myDrawing.common.setInputField(form, gSetup.landSetup);
+  });
+
+  //setup 土地 倍率
+  $('#collapseLandMagnification').on('show.bs.collapse', function (){
+    //$('#collapseLandSize').collapse('hide');
+    var form = $('#f_setupLandMagnification');
+    myDrawing.common.resetAllInputField(form);
+    //myDrawing.common.resetAllInputField($("#f_landInfo"),{"a":"default","checkbox2":["0", "1"],"checkbox":"2","radio2":"1","select2":"1"});
+    myDrawing.common.setInputField(form, gSetup.landSetup);
+  });
+
 
   //init action
   mySlidebar = new slidebars();
   clearAllGraph();
-  draw = SVG('drawing').size(2000, 2000);
+  var tempWidth = Math.round(gSetup.landSetup.width * 100 / gSetup.landSetup.magnification);
+  var tempHeight = Math.round(gSetup.landSetup.height * 100 / gSetup.landSetup.magnification);
+
+  draw = SVG('drawing').size(tempWidth, tempHeight);
   mySlidebar.init();
   gSetup.landInfoId = 1;
 
-  makeMemoriText(SVG('xMemori'), "x", 2000, 1);
-  makeMemoriText(SVG('yMemori'), "y", 2000, 1);
-  makeMemori(draw, "x", 2000, 2000);
-  makeMemori(draw, "y", 2000, 2000);
+  makeMemoriText(SVG('xMemori'), "x", tempWidth, 1);//Math.round(plots[index][0] / magnification)
+  makeMemoriText(SVG('yMemori'), "y", tempHeight, 1);
+  makeMemori(draw, "x", tempWidth, tempHeight);
+  makeMemori(draw, "y", tempHeight, tempWidth);
+  $('#drawingDiv').css("max-height",  + tempHeight + 10 + "px");
 
 
   if (!window.localStorage) {
