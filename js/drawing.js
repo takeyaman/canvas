@@ -199,16 +199,7 @@ var myDrawing = {
             }else{
               json[key] = inputField.val();
             }
-          }else if(tagName == "SELECT"){
-            if(checkedRadioCheckboxSelectName[key] == null){
-              var selectedObjects = $('[name=' + key + ']:selected', formObject);
-              if(myDrawing.common.hasElements(selectedObjects)){
-                json[key] = selectedObjects.val();
-              }else{
-                json[key] = "";
-              }
-            }
-          }else if(tagName == "TEXTAREA"){
+          }else{ //SELECT TEXTAREA
             json[key] = inputField.val();
           }
         }
@@ -368,16 +359,16 @@ $(function(){
     if(direction == 'x'){
       x = maxSize;
       y = 0;
-      memoriFunc = function(draw, position, length, className){
-        draw.line(position, 0, position, length).addClass(className);
+      memoriFunc = function(targetSVGObject, position, length, className){
+        targetSVGObject.line(position, 0, position, length).addClass(className);
         //return $('<path d="M ' + position + ',0 v ' + length + '" />');
       };
 
     }else{
       x = 0;
       y = maxSize;
-      memoriFunc = function(draw, position, length, className){
-        draw.line(0, position, length, position).addClass(className);
+      memoriFunc = function(targetSVGObject, position, length, className){
+        targetSVGObject.line(0, position, length, position).addClass(className);
         //return $('<path d="M 0,' + position + ' h ' + length + '" />');
       };
     }
@@ -395,47 +386,77 @@ $(function(){
   };
 
   /* グラフのメモリテキストを追加 */
-  var makeMemoriText = function(targetSVGObject, direction, maxSize, maxTextSize){
+  var makeMemoriText = function(targetDiv, direction, maxSize, maxTextSize){
     var x,y,memoriFunc;
     if(direction == 'x'){
-      targetSVGObject.size(maxSize, maxTextSize + "rem");
+      targetDiv.css("width", maxSize + "px");
+      targetDiv.css("height", maxTextSize + "rem");
       x = maxSize;
       y = 0;
-      memoriFunc = function(draw, position, maxTextSize, className){
-        var text = draw.plain(position / 100 * gSetup.landSetup.magnification);
-        text.x(position).dx(-text.width() / 2).y(0).addClass(className);
+      memoriFunc = function(targetDiv, position, maxTextSize, className){
+        var text = $('<div>' + (position / 100 * gSetup.landSetup.magnification) + '</div>');
+        text.addClass(className);
+        text.css("position", "absolute");
+        text.css("left", position + "px");
+        text.css("top", "0px");
+        text.css("line-height", "0");
+        targetDiv.append(text);
       };
     }else{
-      targetSVGObject.size((maxTextSize + 3) + "rem", maxSize);
+      targetDiv.css("width", maxTextSize + "rem");
+      targetDiv.css("height", maxSize + "px");
+      targetDiv.css("top", "-" + maxSize + "px");
       x = 0;
       y = maxSize;
-      memoriFunc = function(draw, position, maxTextSize, className){
-        var text = draw.plain(position / 100 * gSetup.landSetup.magnification);
-        text.y(position).dy(-text.width() / 2).x(0).addClass(className);
+      memoriFunc = function(targetDiv, position, maxTextSize, className){
+        var text = $('<div>' + (position / 100 * gSetup.landSetup.magnification) + '</div>');
+        text.addClass(className);
+        text.css("position", "absolute");
+        text.css("top", position + "px");
+        text.css("left", "0px");
+        text.css("line-height", "0");
+        targetDiv.append(text);
       };
     }
     //targetSVGObject.empty();
     for(var i = 100; i <= maxSize; i=i+100){
-      memoriFunc(targetSVGObject, i, maxTextSize, "graphMemoriText");
+      memoriFunc(targetDiv, i, maxTextSize, "graphMemoriText");
     }
   };
 
-  /* ロカールストレージから、私用中の土地情報一覧取得 */
+  /* ロカールストレージから、使用中の土地情報一覧取得 */
   var lReadPresentLandInfoList = function(){
     var jsonText = myDrawing.storage.load(myDrawing.D.LS.KEY_PRESENT_LAND_INFO_LIST);
     if(jsonText != null){
       landInfoList = JSON.parse(jsonText);
-      drawLandInfo(landInfoList);
     }
   };
 
-  var getLandInfoFromServer = function(){
+  /* ロカールストレージから、使用中の土地情報一覧取得 */
+  var lReadSetupInfo = function(){
+    var jsonText = myDrawing.storage.load(myDrawing.D.LS.KEY_SETUP);
+    if(jsonText != null){
+      gSetup = JSON.parse(jsonText);
+    }
+  };
+
+  var getLandInfoFromServer = function(callback){
     var result = myDrawing.ajax.post("sampleJson/landInfoSummaryList.json", null, function(data){
       if(landInfoList[myDrawing.D.LAST_MODIFIED_KEY] == null || landInfoList[myDrawing.D.LAST_MODIFIED_KEY] < data[myDrawing.D.LAST_MODIFIED_KEY]){
         landInfoList = data;
         myDrawing.storage.save(myDrawing.D.LS.KEY_PRESENT_LAND_INFO_LIST, JSON.stringify(landInfoList));
-        drawLandInfo(landInfoList);
       }
+      callback(data);
+    });
+  };
+
+  var getSetupInfoFromServer = function(callback){
+    var result = myDrawing.ajax.post("sampleJson/setup.json", null, function(data){
+      if(gSetup[myDrawing.D.LAST_MODIFIED_KEY] == null || gSetup[myDrawing.D.LAST_MODIFIED_KEY] < data[myDrawing.D.LAST_MODIFIED_KEY]){
+        gSetup = data;
+        myDrawing.storage.save(myDrawing.D.LS.KEY_SETUP, JSON.stringify(gSetup));
+      }
+      callback(data);
     });
   };
 
@@ -494,25 +515,72 @@ $(function(){
     }
   }
 
+  var drawSVGMemori = function(json){
+    var gSetup = json;
+    var tempWidth = Math.round(gSetup.landSetup.width * 100 / gSetup.landSetup.magnification);
+    var tempHeight = Math.round(gSetup.landSetup.height * 100 / gSetup.landSetup.magnification);
+
+    draw = SVG('drawing').size(tempWidth, tempHeight);
+    mySlidebar.init();
+    gSetup.landInfoId = 1;
+
+    makeMemoriText($('#xMemori'), "x", tempWidth, 1);
+    makeMemoriText($('#yMemori'), "y", tempHeight, 1);
+    makeMemori(draw, "x", tempWidth, tempHeight);
+    makeMemori(draw, "y", tempHeight, tempWidth);
+    $('#drawingDiv').css("max-height",  + tempHeight + 10 + "px");
+  };
+
   var clearAllGraph = function(){
     $('#xMemori').empty();
     $('#yMemori').empty();
     $('#drawing').empty();
   };
 
+  var changeLandDesignDisable = function(){
+    gSetup.isEditGraphObject = false;
+  };
   //var rect = draw.rect(100, 100).attr({ fill: '#f06' });
   //rect.draggable();
 
-  $('#dynamicButton').on("click", function(){
-    if(gSetup.isEditGraphObject){
-      gSetup.isEditGraphObject = false;
+  $('#landDesignMove').on("click", function(){
+    if(gSetup.landDesignTransform){
+      $('#landDesignTransform').trigger('click');
+    }
+    if(gSetup.landDesignMove){
+      gSetup.landDesignMove = false;
+      $(this).removeClass("active");
+      $('i', this).hide();
       for(var index in svgObjects){
         svgObjects[index].draggable(false);
       }
     }else{
-      gSetup.isEditGraphObject = true;
+      gSetup.landDesignMove = true;
+      $(this).addClass("active");
+      $('i', this).show();
       for(var index in svgObjects){
         svgObjects[index].draggable().on('dragmove', myDrawing.rect.polygonDraggable());
+      }
+    }
+  });
+
+  $('#landDesignTransform').on("click", function(){
+    if(gSetup.landDesignMove){
+      $('#landDesignMove').trigger('click');
+    }
+    if(gSetup.landDesignTransform){
+      gSetup.landDesignTransform = false;
+      $(this).removeClass("active");
+      $('i', this).hide();
+      for(var index in svgObjects){
+        
+      }
+    }else{
+      gSetup.landDesignTransform = true;
+      $(this).addClass("active");
+      $('i', this).show();
+      for(var index in svgObjects){
+        
       }
     }
   });
@@ -520,7 +588,19 @@ $(function(){
   $('#makeObjectButton').on("click", function(){
     var fill = $('#patternImg_bg1').attr('src');
     var polygon = myDrawing.rect.makeNewPolygon(draw, '0,0 110,10 100,50 50,100', fill, { width: 1 }, gSetup, mySlidebar);
-
+    var text = draw.plain("テスト");
+    text.x(300).y(300).font({
+      family:   'Helvetica'
+      , size:     144
+      , anchor:   'middle'
+      , leading:  '1.5em'
+    });
+    var text2 = SVG('xMemori').plain("test");
+    text2.x(300).y(0).font({
+      family:   'Helvetica'
+      , size:     10
+      , leading:  '1.0em'
+    });
   });
 
   $('#landInfoClose').on("click", function(){
@@ -586,34 +666,69 @@ $(function(){
     myDrawing.common.setInputField(form, gSetup.landSetup);
   });
 
+  //土地 サイズ変更
+  $('#setupLandSizeUpdate').on("click", function(){
+    var form = $('#f_setupLandSize');
+    //入力内容で更新
+    gSetup.landSetup = myDrawing.common.updateJSON(gSetup.landSetup, form);
+    var lastModified = myDrawing.date.getDatetime();
+    //サーバ側に更新内容の送信
+    if(true){
+      gSetup[myDrawing.D.SERVER_LAST_MODIFIED_KEY] = lastModified;
+    }
+    //ローカル側に保存
+    gSetup[myDrawing.D.LAST_MODIFIED_KEY] = lastModified;
+    myDrawing.storage.save(myDrawing.D.LS.KEY_SETUP, JSON.stringify(gSetup));
+    mySlidebar.close('setupMenu');
+    $('#collapseLandSize').collapse('hide');
+    $('#collapseLandMagnification').collapse('hide');
+    changeLandDesignDisable();
+    //SVG再描画
+    clearAllGraph();
+    drawSVGMemori(gSetup);
+    drawLandInfo(landInfoList);
+  });
+
+  //土地 倍率変更
+  $('#setupLandMagnificationUpdate').on("click", function(){
+    var form = $('#f_setupLandMagnification');
+    //入力内容で更新
+    gSetup.landSetup = myDrawing.common.updateJSON(gSetup.landSetup, form);
+    var lastModified = myDrawing.date.getDatetime();
+    //サーバ側に更新内容の送信
+    if(true){
+      gSetup[myDrawing.D.SERVER_LAST_MODIFIED_KEY] = lastModified;
+    }
+    //ローカル側に保存
+    gSetup[myDrawing.D.LAST_MODIFIED_KEY] = lastModified;
+    myDrawing.storage.save(myDrawing.D.LS.KEY_SETUP, JSON.stringify(gSetup));
+    mySlidebar.close('setupMenu');
+    $('#collapseLandSize').collapse('hide');
+    $('#collapseLandMagnification').collapse('hide');
+    changeLandDesignDisable();
+    //SVG再描画
+    clearAllGraph();
+    drawSVGMemori(gSetup);
+    drawLandInfo(landInfoList);
+  });
 
   //init action
   mySlidebar = new slidebars();
+  lReadSetupInfo();
   clearAllGraph();
-  var tempWidth = Math.round(gSetup.landSetup.width * 100 / gSetup.landSetup.magnification);
-  var tempHeight = Math.round(gSetup.landSetup.height * 100 / gSetup.landSetup.magnification);
 
-  draw = SVG('drawing').size(tempWidth, tempHeight);
-  mySlidebar.init();
-  gSetup.landInfoId = 1;
-
-  makeMemoriText(SVG('xMemori'), "x", tempWidth, 1);//Math.round(plots[index][0] / magnification)
-  makeMemoriText(SVG('yMemori'), "y", tempHeight, 1);
-  makeMemori(draw, "x", tempWidth, tempHeight);
-  makeMemori(draw, "y", tempHeight, tempWidth);
-  $('#drawingDiv').css("max-height",  + tempHeight + 10 + "px");
-
-
-  if (!window.localStorage) {
-    alert("ブラウザのローカルストレージを有効にしてください。");
-  }
+  getSetupInfoFromServer(function(json){drawSVGMemori(json)});
   lReadPresentLandInfoList();
-  getLandInfoFromServer();
+  getLandInfoFromServer(function(json){drawLandInfo(json)});
+
+
   //var mySlidebar = new $.slidebars({
   //  siteClose: true,
   //  scrollLock: true
   //});
-
+  if (!window.localStorage) {
+    alert("ブラウザのローカルストレージを有効にしてください。");
+  }
 
 
 });

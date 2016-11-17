@@ -34,9 +34,10 @@
   <div canvas="container">
     <div class="container">
       <div class="page-header">
+        <div id="landDesignMove" class="btn btn-primary" style="min-width:90px;"><i class="fa fa-check" style="display:none;"></i>移動</div>
+        <div id="landDesignTransform" class="btn btn-primary" style="min-width:90px;"><i class="fa fa-check"  style="display:none;"></i>変形</div>
         <span id="makeObjectButton" style="border-style:solid;">makeField</span>&nbsp;&nbsp;&nbsp;&nbsp;
         <span id="fixedButton" style="border-style:solid;">fixed</span>&nbsp;&nbsp;&nbsp;&nbsp;
-        <span id="dynamicButton" style="border-style:solid;">dynamic</span>&nbsp;&nbsp;&nbsp;&nbsp;
       </div>
     </div>
     <!--<div id="graphMain">
@@ -44,11 +45,11 @@
       <canvas id="canvas" width="1000" height="800"></canvas>
     </div>-->
     <div class="container-fluid">
-      <div id="drawingDiv" style="">
-        <div id="xMemori" style="line-height:0;">
+      <div id="drawingDiv" style="position:relative;">
+        <div id="xMemori">
         </div>
-        <div id="drawing" style="line-height:0"></div>
-        <div id="yMemori" style="line-height:0;position:relative;top:-2000px;left:-10px;z-index:-10;">
+        <div id="drawing"></div>
+        <div id="yMemori" style="position:relative;left:-15px;z-index:-10;">
         </div>
       </div>
     </div>
@@ -213,7 +214,7 @@
                     </td>
                   </tr>
                   <tr>
-                    <td><span id="etupLandMagnificationUpdate" class="btn btn-primary">更新</span></td>
+                    <td><span id="setupLandMagnificationUpdate" class="btn btn-primary">更新</span></td>
                     <td></td>
                   </tr>
                 </table>
