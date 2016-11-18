@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>canvas test</title>
   <link rel="stylesheet" href="css/slidebars.css">
+  <link rel="stylesheet" href="css/svg.select.css">
   <link rel="stylesheet" href="css/font-awesome.min.css">
   <link rel="stylesheet" href="css/common.css">
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
@@ -19,9 +20,21 @@
   </script>
   <script type="text/javascript" src="js/slidebars.min.js">
   </script>
+  <!--<script type="text/javascript" src="js/svg.js">
+  </script>
+  <script type="text/javascript" src="js/svg.draggable.min.js">
+  </script>
+  <script type="text/javascript" src="js/svg.select.min.js">
+  </script>
+  <script type="text/javascript" src="js/svg.resize.min.js">
+  </script>-->
   <script type="text/javascript" src="js/svg.js">
   </script>
   <script type="text/javascript" src="js/svg.draggable.min.js">
+  </script>
+  <script type="text/javascript" src="js/svg.select.min.js">
+  </script>
+  <script type="text/javascript" src="js/svg.resize.min.js">
   </script>
   <script type="text/javascript" src="js/drawing.js">
   </script>
@@ -33,9 +46,12 @@
   </header>
   <div canvas="container">
     <div class="container">
-      <div class="page-header">
+      <div class="collapse" id="collapseLandDesignDiv">
         <div id="landDesignMove" class="btn btn-primary" style="min-width:90px;"><i class="fa fa-check" style="display:none;"></i>移動</div>
         <div id="landDesignTransform" class="btn btn-primary" style="min-width:90px;"><i class="fa fa-check"  style="display:none;"></i>変形</div>
+        <div id="landDesignAdd" class="btn btn-primary" style="min-width:90px;">新規作成</div>
+        <div id="landDesignSave" class="btn btn-warning" style="min-width:90px;">保存</div>
+        <div id="landDesignCancel" class="btn btn-warning" style="min-width:90px;">キャンセル</div>
         <span id="makeObjectButton" style="border-style:solid;">makeField</span>&nbsp;&nbsp;&nbsp;&nbsp;
         <span id="fixedButton" style="border-style:solid;">fixed</span>&nbsp;&nbsp;&nbsp;&nbsp;
       </div>
@@ -224,7 +240,7 @@
         </div>
       </li>
       <li class="nav-item">
-        <a class="nav-link" href="#">レイアウト変更</a>
+        <a class="nav-link" data-toggle="collapse" href="#collapseLandDesignDiv">レイアウト変更</a>
       </li>
       <li class="nav-item">
         <a class="nav-link" href="#">Active</a>

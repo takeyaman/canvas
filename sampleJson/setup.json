@@ -1,10 +1,9 @@
 {
-	"lm": "2016/11/17 10:24:00.000",
+	"lm": "2016/11/18 16:26:00.000",
 	"landSetup":{
 		"magnification":1,
-		"width":20,
+		"width":18,
 		"height":20
 	},
-	"isEditGraphObject":false,
-	"landInfoId":10
+	"landInfoId":100
 }

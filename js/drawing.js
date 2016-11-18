@@ -236,7 +236,7 @@ var myDrawing = {
       var polygon = draw.polygon(plots).fill(background).stroke(strokes);
       polygon.id = id;
       /*polygon.draggable().on('dragmove', function(e){
-        if(!gSetup.isEditGraphObject){
+        if(!isLandDesign()){
           e.preventDefault();
           return false;
         }
@@ -327,9 +327,9 @@ var myDrawing = {
     }
   },
   maintenance:{
-    checkVersion: function(actionWhenVersionUp){
+    checkVersion: function(actionWhenVersionUp, localVersion){
       var result = myDrawing.ajax.post("sampleJson/getCurrentVersion.json", null, function(data){
-        if(gSetup[currentVersion] < data.currentVersion){
+        if(localVersion < data.currentVersion){
           actionWhenVersionUp();
         }
       });
@@ -339,16 +339,18 @@ var myDrawing = {
 
 
 $(function(){
-  var gSetup = {};
-  gSetup.isEditGraphObject = false;
-  gSetup.landSetup = {};
-  gSetup.landSetup.magnification = 1;//1:1px=1cm, 10:1px=10cm, 100:1px=1m
-  gSetup.landSetup.width = 20;
-  gSetup.landSetup.height = 20;
-  gSetup.landInfoId = -1;
+  var d = {};
+  d.gSetup = {};
+  var tempSetup = {};
+  d.gSetup.isEditGraphObject = false;
+  d.gSetup.landSetup = {};
+  d.gSetup.landSetup.magnification = 1;//1:1px=1cm, 10:1px=10cm, 100:1px=1m
+  d.gSetup.landSetup.width = 20;
+  d.gSetup.landSetup.height = 20;
+  d.gSetup.landInfoId = -1;
   //var data = {};
-  var landInfoList = {};
-  var landDetailList = {};
+  d.landInfoList = {};
+  d.landDetailList = {};
   var svgObjects = {};
   var draw = null;
   var mySlidebar = null;
@@ -394,7 +396,7 @@ $(function(){
       x = maxSize;
       y = 0;
       memoriFunc = function(targetDiv, position, maxTextSize, className){
-        var text = $('<div>' + (position / 100 * gSetup.landSetup.magnification) + '</div>');
+        var text = $('<div>' + (position / 100 * d.gSetup.landSetup.magnification) + '</div>');
         text.addClass(className);
         text.css("position", "absolute");
         text.css("left", position + "px");
@@ -409,7 +411,7 @@ $(function(){
       x = 0;
       y = maxSize;
       memoriFunc = function(targetDiv, position, maxTextSize, className){
-        var text = $('<div>' + (position / 100 * gSetup.landSetup.magnification) + '</div>');
+        var text = $('<div>' + (position / 100 * d.gSetup.landSetup.magnification) + '</div>');
         text.addClass(className);
         text.css("position", "absolute");
         text.css("top", position + "px");
@@ -428,7 +430,7 @@ $(function(){
   var lReadPresentLandInfoList = function(){
     var jsonText = myDrawing.storage.load(myDrawing.D.LS.KEY_PRESENT_LAND_INFO_LIST);
     if(jsonText != null){
-      landInfoList = JSON.parse(jsonText);
+      d.landInfoList = JSON.parse(jsonText);
     }
   };
 
@@ -436,28 +438,47 @@ $(function(){
   var lReadSetupInfo = function(){
     var jsonText = myDrawing.storage.load(myDrawing.D.LS.KEY_SETUP);
     if(jsonText != null){
-      gSetup = JSON.parse(jsonText);
+      d.gSetup = JSON.parse(jsonText);
     }
   };
 
   var getLandInfoFromServer = function(callback){
     var result = myDrawing.ajax.post("sampleJson/landInfoSummaryList.json", null, function(data){
-      if(landInfoList[myDrawing.D.LAST_MODIFIED_KEY] == null || landInfoList[myDrawing.D.LAST_MODIFIED_KEY] < data[myDrawing.D.LAST_MODIFIED_KEY]){
-        landInfoList = data;
-        myDrawing.storage.save(myDrawing.D.LS.KEY_PRESENT_LAND_INFO_LIST, JSON.stringify(landInfoList));
+      if(d.landInfoList[myDrawing.D.LAST_MODIFIED_KEY] == null || d.landInfoList[myDrawing.D.LAST_MODIFIED_KEY] < data[myDrawing.D.LAST_MODIFIED_KEY]){
+        d.landInfoList = data;
+        myDrawing.storage.save(myDrawing.D.LS.KEY_PRESENT_LAND_INFO_LIST, JSON.stringify(d.landInfoList));
+        callback(data);
+      }else{
+      callback(d.landInfoList);
       }
-      callback(data);
     });
   };
 
   var getSetupInfoFromServer = function(callback){
     var result = myDrawing.ajax.post("sampleJson/setup.json", null, function(data){
-      if(gSetup[myDrawing.D.LAST_MODIFIED_KEY] == null || gSetup[myDrawing.D.LAST_MODIFIED_KEY] < data[myDrawing.D.LAST_MODIFIED_KEY]){
-        gSetup = data;
-        myDrawing.storage.save(myDrawing.D.LS.KEY_SETUP, JSON.stringify(gSetup));
+      if(d.gSetup[myDrawing.D.LAST_MODIFIED_KEY] == null || d.gSetup[myDrawing.D.LAST_MODIFIED_KEY] < data[myDrawing.D.LAST_MODIFIED_KEY]){
+        d.gSetup = data;
+        myDrawing.storage.save(myDrawing.D.LS.KEY_SETUP, JSON.stringify(d.gSetup));
+        callback(data);
       }
-      callback(data);
+      callback(d.gSetup);
     });
+  };
+
+  var landInfoEditClickEvent = function(id, event){
+    if(!isLandDesign()){
+      // Stop default action and bubbling
+      event.stopPropagation();
+      event.preventDefault();
+
+      // Toggle the Slidebar with id 'landInfo'
+      mySlidebar.open('landInfo');
+      $('#btn_landDetailListOpen').show();
+      myDrawing.common.resetAllInputField($("#f_landInfo"));
+      //myDrawing.common.resetAllInputField($("#f_landInfo"),{"a":"default","checkbox2":["0", "1"],"checkbox":"2","radio2":"1","select2":"1"});
+      myDrawing.common.setInputField($("#f_landInfo"), d.landInfoList.root[id]);
+      //$('').val(landInfo[dkey.name]);
+    }
   };
 
   var drawLandInfo = function(json){
@@ -465,48 +486,36 @@ $(function(){
       //var json = JSON.parse(jsonText);
       var list = json.root;
       var dkey = myDrawing.D.M.LI_S;
-      var clickEvent = function(id){
-        // Toggle the Slidebar with id 'landInfo'
-        mySlidebar.open('landInfo');
-        $('#btn_landDetailListOpen').show();
-        myDrawing.common.resetAllInputField($("#f_landInfo"));
-        //myDrawing.common.resetAllInputField($("#f_landInfo"),{"a":"default","checkbox2":["0", "1"],"checkbox":"2","radio2":"1","select2":"1"});
-        myDrawing.common.setInputField($("#f_landInfo"), list[id]);
-        //$('').val(landInfo[dkey.name]);
-      };
       for(var landInfoId in list){
         var landInfo = list[landInfoId];
         var svgType = landInfo[dkey.svgType];
         if(svgType === "4"){
-          var polygon = myDrawing.rect.makePolygon(draw, landInfoId, myDrawing.common.convertSVGPlot(landInfo[dkey.abstractPlots], gSetup.landSetup.magnification),
-           myDrawing.common.getBackground(landInfo[dkey.type]), { width: 1 }, gSetup);
+          var polygon = myDrawing.rect.makePolygon(draw, landInfoId, myDrawing.common.convertSVGPlot(landInfo[dkey.abstractPlots], d.gSetup.landSetup.magnification),
+           myDrawing.common.getBackground(landInfo[dkey.type]), { width: 1 }, d.gSetup);
           polygon.on("click", function(event){
-            if(!gSetup.isEditGraphObject){
-              // Stop default action and bubbling
-              event.stopPropagation();
-              event.preventDefault();
+            landInfoEditClickEvent(this.id, event);
+          });
+          // polygon.on("dblclick", function(event){
+          //   if(isLandDesign()){
+          //     // Stop default action and bubbling
+          //     event.stopPropagation();
+          //     event.preventDefault();
 
-              clickEvent(this.id);
-            }
-          });
-          polygon.on("dblclick", function(event){
-            if(gSetup.isEditGraphObject){
-              // Stop default action and bubbling
-              event.stopPropagation();
-              event.preventDefault();
+          //     clickEvent(this.id);
+          //   }
+          // });
+          // polygon.on("dblTap", function(){
+          //   if(isLandDesign()){
+          //     // Stop default action and bubbling
+          //     event.stopPropagation();
+          //     event.preventDefault();
+          //     alert("");
+          //     clickEvent(this.id);
+          //   }
+          // });
+          // polygon.on("", function(event)){
 
-              clickEvent(this.id);
-            }
-          });
-          polygon.on("dblTap", function(){
-            if(gSetup.isEditGraphObject){
-              // Stop default action and bubbling
-              event.stopPropagation();
-              event.preventDefault();
-              alert("");
-              clickEvent(this.id);
-            }
-          });
+          // });
         }
         svgObjects[polygon.id] = polygon;
       }
@@ -519,6 +528,7 @@ $(function(){
     var gSetup = json;
     var tempWidth = Math.round(gSetup.landSetup.width * 100 / gSetup.landSetup.magnification);
     var tempHeight = Math.round(gSetup.landSetup.height * 100 / gSetup.landSetup.magnification);
+    tempSetup.svgConstraint = {minX:0, minY:0, maxX:tempWidth, maxY:tempHeight};
 
     draw = SVG('drawing').size(tempWidth, tempHeight);
     mySlidebar.init();
@@ -531,76 +541,150 @@ $(function(){
     $('#drawingDiv').css("max-height",  + tempHeight + 10 + "px");
   };
 
+  var updateLandProts = function(landEle){
+    var points = landEle.array().value;
+    var p0Position = 0;
+    var p0Length = Math.pow(points[0][0], 2) + Math.pow(points[0][1], 2)
+    for(var h=1,maxLen=points.length; i < maxLen; h++){
+      var tempLength = Math.pow(points[h][0], 2) + Math.pow(points[h][1], 2);
+      if(p0Length > tempLength){
+        p0Position = h;
+        p0Length = tempLength;
+      }
+    }
+    var landInfo = d.landInfoList.root[landEle.id];
+    var presentProts = landInfo[myDrawing.D.M.LI_S.abstractPlots];
+    for(var i=0,maxLen=presentProts.length; i < maxLen; i++){
+      presentProts[i] = points[(p0Position + i) % maxLen];
+    }
+    landInfo[myDrawing.D.LAST_MODIFIED_KEY] = myDrawing.date.getDatetime();
+  };
+
   var clearAllGraph = function(){
     $('#xMemori').empty();
     $('#yMemori').empty();
     $('#drawing').empty();
   };
 
+  var isLandDesign = function(){
+    if(tempSetup.landDesignTransform || tempSetup.landDesignMove){
+      return true;
+    }else{
+      return false;
+    }
+  }
   var changeLandDesignDisable = function(){
-    gSetup.isEditGraphObject = false;
+    tempSetup.landDesignTransform　= undefined;
+    tempSetup.landDesignMove = undefined;
   };
   //var rect = draw.rect(100, 100).attr({ fill: '#f06' });
   //rect.draggable();
 
+  //農地編集 ツールバー表示
+  $('#collapseLandDesignDiv').on('show.bs.collapse', function (){
+    $('#setupIcon').hide();
+    mySlidebar.close('setupMenu');
+  });
+  //農地編集 ツールバー閉じる
+  $('#collapseLandDesignDiv').on('hide.bs.collapse', function (){
+    $('#setupIcon').show();
+  });
+
   $('#landDesignMove').on("click", function(){
-    if(gSetup.landDesignTransform){
+    if(tempSetup.landDesignTransform){
       $('#landDesignTransform').trigger('click');
     }
-    if(gSetup.landDesignMove){
-      gSetup.landDesignMove = false;
+    if(tempSetup.landDesignMove){
+      tempSetup.landDesignMove = false;
       $(this).removeClass("active");
       $('i', this).hide();
       for(var index in svgObjects){
         svgObjects[index].draggable(false);
       }
     }else{
-      gSetup.landDesignMove = true;
+      tempSetup.landDesignMove = true;
       $(this).addClass("active");
       $('i', this).show();
       for(var index in svgObjects){
-        svgObjects[index].draggable().on('dragmove', myDrawing.rect.polygonDraggable());
+        //svgObjects[index].draggable().on('dragmove', myDrawing.rect.polygonDraggable());
+        svgObjects[index].draggable(tempSetup.svgConstraint).on('dragend', function(e){
+          updateLandProts(this);
+        });
       }
     }
   });
 
   $('#landDesignTransform').on("click", function(){
-    if(gSetup.landDesignMove){
+    if(tempSetup.landDesignMove){
       $('#landDesignMove').trigger('click');
     }
-    if(gSetup.landDesignTransform){
-      gSetup.landDesignTransform = false;
+    if(tempSetup.landDesignTransform){
+      tempSetup.landDesignTransform = false;
       $(this).removeClass("active");
       $('i', this).hide();
+      if(tempSetup.nowLandDesignTransform != null){
+        tempSetup.nowLandDesignTransform.selectize(false).selectize(false, {deepSelect:true})
+        .resize('stop');
+        tempSetup.nowLandDesignTransform.off('click.landDesignTransform');
+        tempSetup.nowLandDesignTransform = undefined;
+      }
       for(var index in svgObjects){
-        
+        svgObjects[index].off('click.landDesignTransform');
       }
     }else{
-      gSetup.landDesignTransform = true;
+      tempSetup.landDesignTransform = true;
       $(this).addClass("active");
       $('i', this).show();
       for(var index in svgObjects){
-        
+        svgObjects[index].on('click.landDesignTransform', function(event){
+          if(tempSetup.nowLandDesignTransform != null){
+            tempSetup.nowLandDesignTransform.selectize(false).selectize(false, {deepSelect:true}).resize('stop');
+          }
+          tempSetup.nowLandDesignTransform = this.selectize().selectize({deepSelect:true})
+          .resize({constraint: tempSetup.svgConstraint}).on('resizedone', function(){
+            updateLandProts(this);
+          });
+        });
       }
     }
   });
+  //農地の新規作成
+  $('#landDesignAdd').on("click", function(){
+    if(tempSetup.landDesignMove){
+      $('#landDesignMove').trigger('click');
+    }
+    if(tempSetup.landDesignTransform){
+      $('#landDesignTransform').trigger('click');
+    }
+    var fill = "#ffffff";
+    var polygon = myDrawing.rect.makeNewPolygon(draw, '0,0 110,10 100,50 50,100', fill, { width: 1 }, d.gSetup, mySlidebar);
+    polygon.on("click", function(event){
+      landInfoEditClickEvent(this.id, event);
+    })
+    polygon.id = d.gSetup.landInfoId;
+    d.gSetup.landInfoId++;
+    svgObjects[polygon.id] = polygon;
+  });
 
-  $('#makeObjectButton').on("click", function(){
-    var fill = $('#patternImg_bg1').attr('src');
-    var polygon = myDrawing.rect.makeNewPolygon(draw, '0,0 110,10 100,50 50,100', fill, { width: 1 }, gSetup, mySlidebar);
-    var text = draw.plain("テスト");
-    text.x(300).y(300).font({
-      family:   'Helvetica'
-      , size:     144
-      , anchor:   'middle'
-      , leading:  '1.5em'
-    });
-    var text2 = SVG('xMemori').plain("test");
-    text2.x(300).y(0).font({
-      family:   'Helvetica'
-      , size:     10
-      , leading:  '1.0em'
-    });
+  $('#landDesignSave').on("click", function(){
+    myDrawing.storage.save(myDrawing.D.LS.KEY_PRESENT_LAND_INFO_LIST, JSON.stringify(d.landInfoList));
+    if(tempSetup.landDesignMove){
+      $('#landDesignMove').trigger('click');
+    }
+    if(tempSetup.landDesignTransform){
+      $('#landDesignTransform').trigger('click');
+    }
+    $('#collapseLandDesignDiv').collapse('hide');
+  });
+
+  $('#landDesignCancel').on("click", function(){
+    if(tempSetup.landDesignMove){
+      $('#landDesignMove').trigger('click');
+    }
+    if(tempSetup.landDesignTransform){
+      $('#landDesignTransform').trigger('click');
+    }
+    $('#collapseLandDesignDiv').collapse('hide');
   });
 
   $('#landInfoClose').on("click", function(){
@@ -612,15 +696,17 @@ $(function(){
   $('#btn_landInfoUpdate').on("click", function(){
     var targetId = $('#landInfoId').val();
     //入力内容で更新
-    landInfoList.root[targetId] = myDrawing.common.updateJSON(landInfoList.root[targetId], $("#f_landInfo"));
-    var lastModified = landInfoList.root[targetId][myDrawing.D.LAST_MODIFIED_KEY];
+    d.landInfoList.root[targetId] = myDrawing.common.updateJSON(d.landInfoList.root[targetId], $("#f_landInfo"));
+    //typeに応じた背景を選択
+    svgObjects[targetId].fill(myDrawing.common.getBackground(d.landInfoList.root[targetId][myDrawing.D.M.LI_S.type]));
+    var lastModified = d.landInfoList.root[targetId][myDrawing.D.LAST_MODIFIED_KEY];
     //サーバ側に更新内容の送信
     if(true){
-      landInfoList.root[targetId][myDrawing.D.SERVER_LAST_MODIFIED_KEY] = lastModified;
+      d.landInfoList.root[targetId][myDrawing.D.SERVER_LAST_MODIFIED_KEY] = lastModified;
     }
     //ローカル側に保存
-    landInfoList[myDrawing.D.LAST_MODIFIED_KEY] = lastModified;
-    myDrawing.storage.save(myDrawing.D.LS.KEY_PRESENT_LAND_INFO_LIST, JSON.stringify(landInfoList));
+    d.landInfoList[myDrawing.D.LAST_MODIFIED_KEY] = lastModified;
+    myDrawing.storage.save(myDrawing.D.LS.KEY_PRESENT_LAND_INFO_LIST, JSON.stringify(d.landInfoList));
     mySlidebar.close('landInfo');
     $('#btn_landDetailListOpen').hide();
   });
@@ -654,7 +740,7 @@ $(function(){
     var form = $('#f_setupLandSize');
     myDrawing.common.resetAllInputField(form);
     //myDrawing.common.resetAllInputField($("#f_landInfo"),{"a":"default","checkbox2":["0", "1"],"checkbox":"2","radio2":"1","select2":"1"});
-    myDrawing.common.setInputField(form, gSetup.landSetup);
+    myDrawing.common.setInputField(form, d.gSetup.landSetup);
   });
 
   //setup 土地 倍率
@@ -663,53 +749,53 @@ $(function(){
     var form = $('#f_setupLandMagnification');
     myDrawing.common.resetAllInputField(form);
     //myDrawing.common.resetAllInputField($("#f_landInfo"),{"a":"default","checkbox2":["0", "1"],"checkbox":"2","radio2":"1","select2":"1"});
-    myDrawing.common.setInputField(form, gSetup.landSetup);
+    myDrawing.common.setInputField(form, d.gSetup.landSetup);
   });
 
   //土地 サイズ変更
   $('#setupLandSizeUpdate').on("click", function(){
     var form = $('#f_setupLandSize');
     //入力内容で更新
-    gSetup.landSetup = myDrawing.common.updateJSON(gSetup.landSetup, form);
+    d.gSetup.landSetup = myDrawing.common.updateJSON(d.gSetup.landSetup, form);
     var lastModified = myDrawing.date.getDatetime();
     //サーバ側に更新内容の送信
     if(true){
-      gSetup[myDrawing.D.SERVER_LAST_MODIFIED_KEY] = lastModified;
+      d.gSetup[myDrawing.D.SERVER_LAST_MODIFIED_KEY] = lastModified;
     }
     //ローカル側に保存
-    gSetup[myDrawing.D.LAST_MODIFIED_KEY] = lastModified;
-    myDrawing.storage.save(myDrawing.D.LS.KEY_SETUP, JSON.stringify(gSetup));
+    d.gSetup[myDrawing.D.LAST_MODIFIED_KEY] = lastModified;
+    myDrawing.storage.save(myDrawing.D.LS.KEY_SETUP, JSON.stringify(d.gSetup));
     mySlidebar.close('setupMenu');
     $('#collapseLandSize').collapse('hide');
     $('#collapseLandMagnification').collapse('hide');
     changeLandDesignDisable();
     //SVG再描画
     clearAllGraph();
-    drawSVGMemori(gSetup);
-    drawLandInfo(landInfoList);
+    drawSVGMemori(d.gSetup);
+    drawLandInfo(d.landInfoList);
   });
 
   //土地 倍率変更
   $('#setupLandMagnificationUpdate').on("click", function(){
     var form = $('#f_setupLandMagnification');
     //入力内容で更新
-    gSetup.landSetup = myDrawing.common.updateJSON(gSetup.landSetup, form);
+    d.gSetup.landSetup = myDrawing.common.updateJSON(d.gSetup.landSetup, form);
     var lastModified = myDrawing.date.getDatetime();
     //サーバ側に更新内容の送信
     if(true){
-      gSetup[myDrawing.D.SERVER_LAST_MODIFIED_KEY] = lastModified;
+      d.gSetup[myDrawing.D.SERVER_LAST_MODIFIED_KEY] = lastModified;
     }
     //ローカル側に保存
-    gSetup[myDrawing.D.LAST_MODIFIED_KEY] = lastModified;
-    myDrawing.storage.save(myDrawing.D.LS.KEY_SETUP, JSON.stringify(gSetup));
+    d.gSetup[myDrawing.D.LAST_MODIFIED_KEY] = lastModified;
+    myDrawing.storage.save(myDrawing.D.LS.KEY_SETUP, JSON.stringify(d.gSetup));
     mySlidebar.close('setupMenu');
     $('#collapseLandSize').collapse('hide');
     $('#collapseLandMagnification').collapse('hide');
     changeLandDesignDisable();
     //SVG再描画
     clearAllGraph();
-    drawSVGMemori(gSetup);
-    drawLandInfo(landInfoList);
+    drawSVGMemori(d.gSetup);
+    drawLandInfo(d.landInfoList);
   });
 
   //init action
